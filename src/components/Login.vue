@@ -33,10 +33,11 @@ export default {
       const res = await this.$http.post("login", this.formdata);
       const data = res.data;
       const { meta: { status, msg }} = data;
+      
       if (status === 200) {
         const token = data.data.token;
         // 第一个参数是名字第二个是要存储的对象
-        sessionStorage.setItem("token", token);
+        sessionStorage.setItem('token', token)
         this.$message.success(msg);
         this.$router.push({
           name: "home"
