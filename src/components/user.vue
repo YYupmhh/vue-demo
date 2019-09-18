@@ -22,31 +22,26 @@
       :data="tableData"
       style="width: 100%">
       <!-- 序号 -->
+     <el-table-column prop="id" label="#" width="80">
+     </el-table-column>
+     <el-table-column prop="username" label="姓名" width="120">
+     </el-table-column>
+     <el-table-column prop="email" label="邮箱" width="160">
+     </el-table-column>
+     <el-table-column prop="mobile" label="电话" width="140">
+     </el-table-column>
+    
+     <el-table-column  label="创建日期">
+      <template slot-scope="scope">
+                 {{scope.row.create_time | fromdata}}
+       </template>
+     </el-table-column>
+    
       <el-table-column
-      type="index"
-      width="50">
-    </el-table-column>
-
-      <el-table-column
-        prop="date"
-        label="日期"
-        width="180">
-      </el-table-column>
-      <el-table-column
-        prop="name"
-        label="姓名"
-        width="180">
-      </el-table-column>
-      <el-table-column
-        prop="address"
-        label="地址">
-      </el-table-column>
-      <el-table-column
-        prop="state"
         label="状态">
         <template slot-scope="scope">
          <el-switch
-        v-model="scope.row.state"
+        v-model="scope.row.mg_state"
         active-color="#13ce66"
         inactive-color="#ff4949">
       </el-switch></template>
@@ -58,40 +53,87 @@
         <el-button plain size="mini" type="success" icon="el-icon-check" circle></el-button>
       </el-row>
       </el-table-column>
+       
     </el-table>
+     <div class="block" >
+            <el-pagination 
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="pagenum"
+              :page-sizes="[2, 4, 6, 8]"
+              :page-size="pagesize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total">
+            </el-pagination>
+        </div>
 
   </el-card>
 </template>
 
 <script>
 export default {
+  created() {
+    this.getUserdata();
+  },
+   methods:{
+   handleSizeChange(val) {
+        console.log(`每页 ${val} 条`);
+      this.pagesize = val;
+      this.pagenum = 1;
+      this.getUserdata();
+      },
+   handleCurrentChange(val) {
+        console.log(`当前页: ${val}`);
+        this.pagenum = val;
+        this.getUserdata();
+      },
+  async getUserdata() {
+    const AUTH_TOKEN = sessionStorage.getItem("token");
+    this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+    const res = await this.$http.get("/users",{params:{
+      query: '',
+      pagenum: this.pagenum,
+      pagesize: this.pagesize
+    }})
+    console.log(res);
+    const data = res.data
+    const {meta: {msg,status}} = data
+ 
+    if (status === 200) {
+      const {data: {pagenum,total,users}} = data
+      this.$message.success(msg);
+      this.tableData =  users;
+      this.pagenum =  pagenum;
+      this.total =  total;
+
+    }
+    
+
+  }
+ },
  data () {
     return{
-       tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄',
-        state: false
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄',
-        state: false
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄',
-        state: false
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄',
-        state: false
-      }]
+       query:'',
+       pagenum:'1',
+       pagesize:'2',
+       total:'0',
+       tableData:[]
     }
  }
+
 }
 
 </script>
-<style lang='scss' scoped>
+<style>
+.box-card{
+  height: 100%;
+
+}
+.searchArea{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.searchArea .searchInput{
+  width: 350px;
+}
 </style>
